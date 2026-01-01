@@ -1,0 +1,92 @@
+{% extends "base_dynamic.html" %}
+
+{% block content %}
+<div class="page-header">
+    <h2>最新微博</h2>
+    <p class="stats">共收录 {{ total_count }} 条微博</p>
+</div>
+
+{% if users %}
+<div class="users-panel">
+    <h3>博主列表</h3>
+    <div class="user-list">
+        {% for user in users %}
+        <a href="/user/{{ user.uid }}" class="user-card">
+            <div class="user-name">{{ user.name }}</div>
+            <div class="user-desc">{{ user.description[:50] if user.description else '' }}...</div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="weibo-list">
+    {% for weibo in weibos %}
+    <article class="weibo-item" data-id="{{ weibo.id }}">
+        <div class="weibo-header">
+            <a href="/user/{{ weibo.uid }}" class="author">{{ weibo.user_name }}</a>
+            <span class="time">{{ weibo.created_at | datetimeformat }}</span>
+        </div>
+
+        <div class="weibo-content">
+            {{ weibo.content }}
+        </div>
+
+        {% if weibo.pics %}
+        <div class="weibo-images">
+            {% for pic in weibo.pics %}
+            <a href="{{ pic }}" target="_blank" class="image-link">
+                <img src="/{{ pic }}" alt="图片" loading="lazy">
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if weibo.retweeted_status %}
+        <div class="retweeted">
+            <div class="retweeted-author">@{{ weibo.retweeted_status.user.screen_name }}</div>
+            <div class="retweeted-content">{{ weibo.retweeted_status.text_raw }}</div>
+        </div>
+        {% endif %}
+
+        <div class="weibo-footer">
+            <span class="stat">转发 {{ weibo.reposts_count }}</span>
+            <span class="stat">评论 {{ weibo.comments_count }}</span>
+            <span class="stat">点赞 {{ weibo.attitudes_count }}</span>
+            <a href="/post/{{ weibo.id }}" class="detail-link">详情</a>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if current_page > 1 %}
+        <a href="/?page={{ current_page - 1 }}" class="page-link">上一页</a>
+    {% endif %}
+
+    <span class="page-info">第 {{ current_page }} / {{ total_pages }} 页</span>
+
+    {% if current_page < total_pages %}
+        <a href="/?page={{ current_page + 1 }}" class="page-link">下一页</a>
+    {% endif %}
+
+    <form method="get" action="/" class="page-jump" onsubmit="return validatePageJump(event, {{ total_pages }})">
+        <input type="number" name="page" min="1" max="{{ total_pages }}" placeholder="跳转到..." class="page-input">
+        <button type="submit" class="page-jump-btn">跳转</button>
+    </form>
+</div>
+
+<script>
+function validatePageJump(event, maxPage) {
+    const input = event.target.querySelector('input[name="page"]');
+    const page = parseInt(input.value);
+    if (!page || page < 1 || page > maxPage) {
+        alert('请输入有效的页码 (1-' + maxPage + ')');
+        return false;
+    }
+    return true;
+}
+</script>
+{% endif %}
+{% endblock %}

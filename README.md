@@ -8,8 +8,9 @@
 - 💾 **完整存储**: 保存微博文字、图片、转发等完整信息
 - 🔍 **全文搜索**: 支持关键词搜索，快速定位内容
 - 📱 **响应式设计**: 适配桌面和移动设备
-- 🚀 **静态部署**: 生成纯静态HTML，无需后端服务
+- 🚀 **双模式运行**: 支持静态站点生成和动态Flask服务器两种模式
 - 📊 **数据库存储**: 使用SQLite存储，方便数据管理
+- 🔄 **增量更新**: 智能识别已抓取内容，仅获取新微博
 
 ## 项目结构
 
@@ -22,16 +23,22 @@ tombkeeper/
 │   ├── database.db      # SQLite数据库
 │   └── images/          # 图片文件
 ├── generator/           # 网站生成器
-│   ├── build.py         # 构建脚本
+│   ├── build.py         # 静态站点构建脚本
 │   └── templates/       # HTML模板
-│       ├── base.html
-│       ├── index.html
-│       ├── user.html
-│       ├── post.html
+│       ├── base.html            # 静态模板基础
+│       ├── base_dynamic.html   # 动态模板基础
+│       ├── index.html           # 静态首页
+│       ├── index_dynamic.html  # 动态首页
+│       ├── user.html            # 静态用户页
+│       ├── user_dynamic.html   # 动态用户页
+│       ├── post.html            # 静态详情页
+│       ├── post_dynamic.html   # 动态详情页
 │       └── assets/      # 静态资源
 │           ├── style.css
-│           └── search.js
+│           ├── search.js         # 静态模式搜索
+│           └── search_dynamic.js # 动态模式搜索
 ├── site/                # 生成的静态网站
+├── app.py               # Flask动态服务器
 └── requirements.txt     # Python依赖
 ```
 
@@ -88,11 +95,34 @@ python weibo_spider.py
 
 爬虫会自动：
 - 抓取用户信息
-- 获取所有微博内容
+- 获取所有微博内容（增量更新，自动跳过已存在微博）
 - 下载微博图片
 - 保存到SQLite数据库
 
-### 4. 生成静态网站
+### 4. 选择运行模式
+
+#### 方式一：动态模式（推荐本地使用）
+
+直接运行Flask服务器，实时从数据库读取数据：
+
+```bash
+python app.py
+```
+
+然后在浏览器访问: `http://localhost:5000`
+
+**优点**：
+- 无需生成静态文件，直接查看最新数据
+- 适合频繁更新的场景
+- 搜索使用SQLite FTS全文搜索，性能更好
+
+**缺点**：
+- 需要Python环境运行
+- 不适合部署到静态托管服务
+
+#### 方式二：静态模式（推荐部署使用）
+
+生成静态HTML网站：
 
 ```bash
 cd generator
@@ -101,39 +131,45 @@ python build.py
 
 生成器会：
 - 读取数据库中的微博数据
-- 生成静态HTML页面
+- 生成静态HTML页面（支持分页）
 - 创建搜索索引
 - 复制静态资源和图片
 
-### 5. 本地预览
+然后使用任意HTTP服务器运行：
 
-使用任意HTTP服务器运行生成的网站：
-
-#### Python方式：
 ```bash
+# Python方式
 cd site
 python -m http.server 8000
-```
 
-#### Node.js方式：
-```bash
+# 或 Node.js方式
 cd site
 npx http-server -p 8000
 ```
 
-然后在浏览器访问: `http://localhost:8000`
+浏览器访问: `http://localhost:8000`
+
+**优点**：
+- 纯静态文件，可部署到任何静态托管服务
+- 无需后端，访问速度快
+- 可离线浏览
+
+**缺点**：
+- 每次更新数据后需要重新生成
+- 生成时间较长（数据量大时）
 
 ## 功能说明
 
 ### 首页
 - 显示所有博主列表
-- 展示最新50条微博
+- 展示最新微博（每页50条，支持翻页）
 - 支持搜索功能
 
 ### 用户页
 - 显示该用户的所有微博
-- 按时间倒序排列
+- 按微博ID倒序排列（最新的在前）
 - 显示用户信息和统计
+- 支持分页浏览
 
 ### 微博详情页
 - 显示完整的微博内容
@@ -142,9 +178,16 @@ npx http-server -p 8000
 - 显示互动统计
 
 ### 搜索功能
-- 点击导航栏的"搜索"打开搜索面板
-- 输入关键词实时搜索
-- 支持中文搜索
+
+**动态模式**：
+- 使用SQLite FTS5全文搜索
+- 实时查询数据库
+- 支持中文分词
+- 最多返回20条结果
+
+**静态模式**：
+- 使用预生成的JSON索引
+- 客户端JavaScript搜索
 - 高亮显示匹配内容
 - 按相关度排序
 
@@ -197,7 +240,17 @@ npx http-server -p 8000
 ## 进阶使用
 
 ### 定时更新
-可以使用cron或Windows任务计划程序定时运行爬虫：
+
+**动态模式**：
+只需定时运行爬虫即可，Flask会自动读取最新数据：
+
+```bash
+# Linux/Mac crontab示例 - 每天凌晨2点更新
+0 2 * * * cd /path/to/tombkeeper/crawler && python weibo_spider.py
+```
+
+**静态模式**：
+需要同时运行爬虫和生成器：
 
 ```bash
 # Linux/Mac crontab示例 - 每天凌晨2点更新
@@ -209,17 +262,26 @@ npx http-server -p 8000
 修改 `generator/templates/assets/style.css` 可以自定义网站样式。
 
 ### 部署到服务器
+
+**静态模式部署**：
 生成的 `site` 目录是纯静态文件，可以直接部署到：
 - GitHub Pages
 - Netlify
 - Vercel
 - 任意静态文件服务器
 
-### 扩展搜索功能
-当前使用简单的字符串匹配搜索，如需更强大的搜索功能，可以集成：
-- Lunr.js
-- Fuse.js
-- MiniSearch
+**动态模式部署**：
+需要支持Python的托管服务：
+- Railway
+- Render
+- PythonAnywhere
+- 自己的VPS（使用gunicorn + nginx）
+
+部署示例（使用gunicorn）：
+```bash
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
 
 ## 常见问题
 
@@ -230,7 +292,9 @@ A: Cookie已过期，需要重新登录微博并获取新的Cookie。
 A: 检查图片是否成功下载到 `data/images` 目录，确认 `download_images` 配置为 `true`。
 
 ### Q: 搜索功能不工作？
-A: 确保运行了 `build.py` 生成搜索索引文件 `assets/search-index.json`。
+A:
+- **静态模式**：确保运行了 `build.py` 生成搜索索引文件 `assets/search-index.json`。
+- **动态模式**：检查数据库中是否有 `weibos_fts` 表，爬虫会自动创建。
 
 ### Q: 如何备份数据？
 A: 备份 `data` 目录即可，包含数据库和所有图片。
@@ -240,6 +304,13 @@ A: 不能。只能抓取公开的微博内容。
 
 ### Q: 会被微博封号吗？
 A: 合理使用、控制请求频率，一般不会。建议设置合适的延迟时间（2-5秒）。
+
+### Q: 静态模式和动态模式如何选择？
+A:
+- **本地频繁查看**：推荐动态模式，无需每次生成，实时看到最新数据
+- **部署到静态托管**：必须使用静态模式（如GitHub Pages）
+- **部署到VPS**：可选择动态模式，更方便维护
+- **数据量特别大**：静态模式生成时间长，推荐动态模式
 
 ## 开发计划
 

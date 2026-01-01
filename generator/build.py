@@ -56,7 +56,7 @@ class SiteGenerator:
                 FROM weibos w
                 LEFT JOIN users u ON w.uid = u.uid
                 WHERE w.uid = ?
-                ORDER BY w.id DESC
+                ORDER BY CAST(w.id AS INTEGER) DESC
             '''
             params = [uid]
         else:
@@ -64,7 +64,7 @@ class SiteGenerator:
                 SELECT w.*, u.name as user_name
                 FROM weibos w
                 LEFT JOIN users u ON w.uid = u.uid
-                ORDER BY w.id DESC
+                ORDER BY CAST(w.id AS INTEGER) DESC
             '''
             params = []
 
