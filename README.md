@@ -88,9 +88,10 @@ pip install -r requirements.txt
 
 ### 3. 运行爬虫
 
+#### 单次运行
+
 ```bash
-cd crawler
-python weibo_spider.py
+python run.py
 ```
 
 爬虫会自动：
@@ -98,6 +99,38 @@ python weibo_spider.py
 - 获取所有微博内容（增量更新，自动跳过已存在微博）
 - 下载微博图片
 - 保存到SQLite数据库
+
+#### 定时自动更新（推荐）
+
+本系统专门针对 **5-10分钟频繁更新** 场景进行了优化，在无新内容时可在2秒内完成检查。
+
+**方式1：使用Python调度器（跨平台）**
+
+```bash
+python scheduler.py
+```
+
+默认每10分钟自动运行一次爬虫。
+
+**方式2：使用系统定时任务**
+
+Windows - 任务计划程序:
+1. 打开"任务计划程序"
+2. 创建基本任务 → 触发器设为"每10分钟"
+3. 操作 → 启动程序 → 选择 `run_crawler_scheduled.bat`
+
+Linux/Mac - crontab:
+```bash
+# 每10分钟执行一次
+*/10 * * * * cd /path/to/tombkeeper && python run.py >> logs/crawler.log 2>&1
+```
+
+**性能优势**：
+- 无新微博时：~2秒完成（快速ID检查）
+- 少量新微博：~5秒完成（仅爬取第一页）
+- 大量新微博：~12秒完成（智能增量更新）
+
+详见 [爬虫优化文档](CRAWLER_OPTIMIZATION.md)
 
 ### 4. 选择运行模式
 
