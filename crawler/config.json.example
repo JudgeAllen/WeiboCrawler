@@ -1,0 +1,18 @@
+{
+  "target_users": [
+    {
+      "uid": "1401527553",
+      "name": "tombkeeper"
+    },
+    {
+      "uid": "6827625527",
+      "name": "t0mbkeeper"
+    }
+  ],
+  "cookie": "YOUR_WEIBO_COOKIE_HERE",
+  "download_images": true,
+  "image_path": "../data/images",
+  "database_path": "../data/database.db",
+  "delay": 2,
+  "max_retries": 3
+}

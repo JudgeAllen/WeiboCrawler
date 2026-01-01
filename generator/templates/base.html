@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title }}{% endblock %}</title>
+    <link rel="stylesheet" href="/assets/style.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title"><a href="/">微博归档</a></h1>
+            <nav class="site-nav">
+                <a href="/">首页</a>
+                <a href="#" id="search-toggle">搜索</a>
+            </nav>
+        </div>
+    </header>
+
+    <div id="search-panel" class="search-panel">
+        <div class="container">
+            <input type="text" id="search-input" placeholder="搜索微博内容..." autocomplete="off">
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <main class="site-main">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>微博归档系统 &copy; 2024</p>
+        </div>
+    </footer>
+
+    <script src="/assets/search.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

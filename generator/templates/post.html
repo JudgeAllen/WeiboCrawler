@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <a href="/users/{{ weibo.uid }}.html" class="back-link">← 返回 {{ weibo.user_name }}</a>
+</div>
+
+<article class="weibo-detail">
+    <div class="weibo-header">
+        <a href="/users/{{ weibo.uid }}.html" class="author">{{ weibo.user_name }}</a>
+        <span class="time">{{ weibo.created_at | datetimeformat }}</span>
+    </div>
+
+    <div class="weibo-content">
+        {{ weibo.content }}
+    </div>
+
+    {% if weibo.pics %}
+    <div class="weibo-images">
+        {% for pic in weibo.pics %}
+        <a href="{{ pic }}" target="_blank" class="image-link">
+            <img src="{{ pic }}" alt="图片">
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if weibo.retweeted_status %}
+    <div class="retweeted">
+        <div class="retweeted-author">@{{ weibo.retweeted_status.user.screen_name }}</div>
+        <div class="retweeted-content">{{ weibo.retweeted_status.text_raw }}</div>
+        {% if weibo.retweeted_status.pics %}
+        <div class="weibo-images">
+            {% for pic in weibo.retweeted_status.pics %}
+            <a href="{{ pic.large.url }}" target="_blank" class="image-link">
+                <img src="{{ pic.large.url }}" alt="图片">
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="weibo-stats">
+        <div class="stat-item">
+            <span class="stat-label">转发</span>
+            <span class="stat-value">{{ weibo.reposts_count }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">评论</span>
+            <span class="stat-value">{{ weibo.comments_count }}</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">点赞</span>
+            <span class="stat-value">{{ weibo.attitudes_count }}</span>
+        </div>
+    </div>
+
+    {% if weibo.source %}
+    <div class="weibo-meta">
+        <span class="source">来自: {{ weibo.source }}</span>
+    </div>
+    {% endif %}
+</article>
+{% endblock %}
