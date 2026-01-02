@@ -61,7 +61,15 @@ class WeiboSpider:
 
     def _init_database(self) -> sqlite3.Connection:
         """初始化数据库"""
-        db_path = Path(self.config.get('database_path', '../data/database.db'))
+        db_path_str = self.config.get('database_path', '../data/database.db')
+        db_path = Path(db_path_str)
+
+        # 如果是相对路径，相对于项目根目录（crawler的上级目录）
+        if not db_path.is_absolute():
+            # 获取项目根目录（crawler的父目录）
+            project_root = Path(__file__).parent.parent
+            db_path = project_root / db_path_str.lstrip('../')
+
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
         conn = sqlite3.connect(str(db_path))
@@ -158,7 +166,14 @@ class WeiboSpider:
 
         try:
             # 创建图片保存目录
-            image_dir = Path(self.config.get('image_path', '../data/images'))
+            image_path_str = self.config.get('image_path', '../data/images')
+            image_dir = Path(image_path_str)
+
+            # 如果是相对路径，相对于项目根目录
+            if not image_dir.is_absolute():
+                project_root = Path(__file__).parent.parent
+                image_dir = project_root / image_path_str.lstrip('../')
+
             # 确保weibo_id是字符串
             weibo_id_str = str(weibo_id)
             weibo_dir = image_dir / weibo_id_str
