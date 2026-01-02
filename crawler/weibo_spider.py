@@ -30,6 +30,12 @@ class WeiboSpider:
 
     def _load_config(self, config_path: str) -> dict:
         """加载配置文件"""
+        # 如果配置文件路径不是绝对路径，尝试在 crawler 目录查找
+        if not os.path.isabs(config_path) and not os.path.exists(config_path):
+            # 获取当前脚本所在目录
+            script_dir = Path(__file__).parent
+            config_path = script_dir / config_path
+
         with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
 
