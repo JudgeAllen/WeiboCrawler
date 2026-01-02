@@ -114,15 +114,21 @@ python scheduler.py
 
 **方式2：使用系统定时任务**
 
-Windows - 任务计划程序:
-1. 打开"任务计划程序"
+Windows - 任务计划程序（详细步骤见 [Windows计划任务指南](WINDOWS_TASK_SCHEDULER.md)）:
+1. 打开"任务计划程序"（`Win+R` → 输入 `taskschd.msc`）
 2. 创建基本任务 → 触发器设为"每10分钟"
 3. 操作 → 启动程序 → 选择 `run_crawler_scheduled.bat`
+4. 高级设置 → 配置重复间隔和运行条件
+
+快速命令（管理员CMD）：
+```cmd
+schtasks /create /tn "微博爬虫定时更新" /tr "f:\Git\tombkeeper\run_crawler_scheduled.bat" /sc minute /mo 10 /st 00:00 /du 9999:00 /f
+```
 
 Linux/Mac - crontab:
 ```bash
 # 每10分钟执行一次
-*/10 * * * * cd /path/to/tombkeeper && python run.py >> logs/crawler.log 2>&1
+*/10 * * * * cd /path/to/tombkeeper && cd crawler && python weibo_spider.py >> ../logs/crawler.log 2>&1
 ```
 
 **性能优势**：
