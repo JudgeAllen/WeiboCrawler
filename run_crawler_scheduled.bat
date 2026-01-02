@@ -13,7 +13,9 @@ echo.
 echo Start Time: %date% %time%
 echo.
 
-python run.py
+cd crawler
+python weibo_spider.py
+cd ..
 
 echo.
 echo Completed: %date% %time%
