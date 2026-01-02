@@ -18,7 +18,7 @@
     {% if weibo.pics %}
     <div class="weibo-images">
         {% for pic in weibo.pics %}
-        <a href="{{ pic }}" target="_blank" class="image-link">
+        <a href="javascript:void(0)" class="image-link">
             <img src="/{{ pic }}" alt="图片">
         </a>
         {% endfor %}
@@ -32,7 +32,7 @@
         {% if weibo.retweeted_status.pics %}
         <div class="weibo-images">
             {% for pic in weibo.retweeted_status.pics %}
-            <a href="{{ pic.large.url }}" target="_blank" class="image-link">
+            <a href="javascript:void(0)" class="image-link">
                 <img src="{{ pic.large.url }}" alt="图片">
             </a>
             {% endfor %}

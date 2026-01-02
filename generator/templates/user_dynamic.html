@@ -23,7 +23,7 @@
         {% if weibo.pics %}
         <div class="weibo-images">
             {% for pic in weibo.pics %}
-            <a href="{{ pic }}" target="_blank" class="image-link">
+            <a href="javascript:void(0)" class="image-link">
                 <img src="/{{ pic }}" alt="图片" loading="lazy">
             </a>
             {% endfor %}
