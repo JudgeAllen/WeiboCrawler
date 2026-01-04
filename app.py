@@ -399,6 +399,14 @@ def date_range():
             weibo['pics'] = convert_pics_to_local(weibo['id'], pic_urls, cursor)
         else:
             weibo['pics'] = []
+
+        # 解析转发微博
+        if weibo.get('retweeted_status'):
+            try:
+                weibo['retweeted_status'] = json.loads(weibo['retweeted_status'])
+            except:
+                weibo['retweeted_status'] = None
+
         weibos.append(weibo)
 
     conn.close()
