@@ -301,16 +301,19 @@ def date_range():
 
     # 如果没有提供日期，显示日期选择页面
     if not start_date or not end_date:
-        # 获取最早和最晚的微博日期
-        cursor.execute('SELECT MIN(created_at), MAX(created_at) FROM weibos')
-        date_range_row = cursor.fetchone()
+        # 获取最早和最晚的微博日期（按ID排序，ID越小越早）
+        cursor.execute('SELECT created_at FROM weibos ORDER BY CAST(id AS INTEGER) ASC LIMIT 1')
+        min_row = cursor.fetchone()
+
+        cursor.execute('SELECT created_at FROM weibos ORDER BY CAST(id AS INTEGER) DESC LIMIT 1')
+        max_row = cursor.fetchone()
 
         min_date = None
         max_date = None
-        if date_range_row[0] and date_range_row[1]:
+        if min_row and max_row:
             try:
-                min_dt = datetime.strptime(date_range_row[0], '%a %b %d %H:%M:%S %z %Y')
-                max_dt = datetime.strptime(date_range_row[1], '%a %b %d %H:%M:%S %z %Y')
+                min_dt = datetime.strptime(min_row[0], '%a %b %d %H:%M:%S %z %Y')
+                max_dt = datetime.strptime(max_row[0], '%a %b %d %H:%M:%S %z %Y')
                 min_date = min_dt.strftime('%Y-%m-%d')
                 max_date = max_dt.strftime('%Y-%m-%d')
             except:
