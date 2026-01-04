@@ -1,0 +1,95 @@
+{% extends "base_dynamic.html" %}
+
+{% block content %}
+<div class="date-range-container">
+    <h2>按日期筛选微博</h2>
+    <p class="date-range-desc">选择日期范围查看该时间段内的所有微博，方便查看某条微博的前后相关内容。</p>
+
+    <form method="get" action="/date-range" class="date-range-form">
+        <div class="date-inputs">
+            <div class="date-input-group">
+                <label for="start-date">开始日期</label>
+                <input type="date"
+                       id="start-date"
+                       name="start"
+                       {% if min_date %}min="{{ min_date }}"{% endif %}
+                       {% if max_date %}max="{{ max_date }}"{% endif %}
+                       required>
+            </div>
+
+            <div class="date-separator">至</div>
+
+            <div class="date-input-group">
+                <label for="end-date">结束日期</label>
+                <input type="date"
+                       id="end-date"
+                       name="end"
+                       {% if min_date %}min="{{ min_date }}"{% endif %}
+                       {% if max_date %}max="{{ max_date }}"{% endif %}
+                       required>
+            </div>
+        </div>
+
+        <div class="quick-select">
+            <span class="quick-label">快捷选择：</span>
+            <button type="button" class="quick-btn" onclick="setToday()">今天</button>
+            <button type="button" class="quick-btn" onclick="setLastWeek()">最近7天</button>
+            <button type="button" class="quick-btn" onclick="setLastMonth()">最近30天</button>
+            <button type="button" class="quick-btn" onclick="setThisYear()">今年</button>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="submit-btn">查询微博</button>
+        </div>
+    </form>
+
+    {% if min_date and max_date %}
+    <div class="date-info">
+        <p>数据库中的微博日期范围：{{ min_date }} 至 {{ max_date }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function setToday() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start-date').value = today;
+    document.getElementById('end-date').value = today;
+}
+
+function setLastWeek() {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 7);
+    document.getElementById('start-date').value = start.toISOString().split('T')[0];
+    document.getElementById('end-date').value = end.toISOString().split('T')[0];
+}
+
+function setLastMonth() {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(start.getDate() - 30);
+    document.getElementById('start-date').value = start.toISOString().split('T')[0];
+    document.getElementById('end-date').value = end.toISOString().split('T')[0];
+}
+
+function setThisYear() {
+    const end = new Date();
+    const start = new Date(end.getFullYear(), 0, 1);
+    document.getElementById('start-date').value = start.toISOString().split('T')[0];
+    document.getElementById('end-date').value = end.toISOString().split('T')[0];
+}
+
+// 验证日期范围
+document.querySelector('.date-range-form').addEventListener('submit', function(e) {
+    const start = document.getElementById('start-date').value;
+    const end = document.getElementById('end-date').value;
+
+    if (start && end && start > end) {
+        e.preventDefault();
+        alert('开始日期不能晚于结束日期');
+        return false;
+    }
+});
+</script>
+{% endblock %}

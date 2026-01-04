@@ -287,6 +287,130 @@ def search_api():
     return jsonify(results)
 
 
+@app.route('/date-range')
+def date_range():
+    """按日期范围筛选微博"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 获取日期参数
+    start_date = request.args.get('start', '')
+    end_date = request.args.get('end', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+
+    # 如果没有提供日期，显示日期选择页面
+    if not start_date or not end_date:
+        # 获取最早和最晚的微博日期
+        cursor.execute('SELECT MIN(created_at), MAX(created_at) FROM weibos')
+        date_range_row = cursor.fetchone()
+
+        min_date = None
+        max_date = None
+        if date_range_row[0] and date_range_row[1]:
+            try:
+                min_dt = datetime.strptime(date_range_row[0], '%a %b %d %H:%M:%S %z %Y')
+                max_dt = datetime.strptime(date_range_row[1], '%a %b %d %H:%M:%S %z %Y')
+                min_date = min_dt.strftime('%Y-%m-%d')
+                max_date = max_dt.strftime('%Y-%m-%d')
+            except:
+                pass
+
+        conn.close()
+        return render_template('date_range.html',
+                             page_title='按日期筛选',
+                             min_date=min_date,
+                             max_date=max_date)
+
+    # 转换日期格式用于查询
+    try:
+        start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+        end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+        # 结束日期包含当天23:59:59
+        end_dt = end_dt.replace(hour=23, minute=59, second=59)
+    except:
+        conn.close()
+        return "日期格式错误", 400
+
+    # 查询该日期范围内的微博总数
+    cursor.execute('''
+        SELECT COUNT(*) FROM weibos w
+        WHERE datetime(substr(w.created_at, -4) || '-' ||
+              CASE substr(w.created_at, 5, 3)
+                  WHEN 'Jan' THEN '01'
+                  WHEN 'Feb' THEN '02'
+                  WHEN 'Mar' THEN '03'
+                  WHEN 'Apr' THEN '04'
+                  WHEN 'May' THEN '05'
+                  WHEN 'Jun' THEN '06'
+                  WHEN 'Jul' THEN '07'
+                  WHEN 'Aug' THEN '08'
+                  WHEN 'Sep' THEN '09'
+                  WHEN 'Oct' THEN '10'
+                  WHEN 'Nov' THEN '11'
+                  WHEN 'Dec' THEN '12'
+              END || '-' ||
+              substr('0' || substr(w.created_at, 9, 2), -2) || ' ' ||
+              substr(w.created_at, 12, 8))
+        BETWEEN ? AND ?
+    ''', (start_dt.strftime('%Y-%m-%d %H:%M:%S'), end_dt.strftime('%Y-%m-%d %H:%M:%S')))
+
+    total = cursor.fetchone()[0]
+    total_pages = (total + per_page - 1) // per_page
+    offset = (page - 1) * per_page
+
+    # 查询该日期范围内的微博
+    cursor.execute('''
+        SELECT w.*, u.name as user_name
+        FROM weibos w
+        LEFT JOIN users u ON w.uid = u.uid
+        WHERE datetime(substr(w.created_at, -4) || '-' ||
+              CASE substr(w.created_at, 5, 3)
+                  WHEN 'Jan' THEN '01'
+                  WHEN 'Feb' THEN '02'
+                  WHEN 'Mar' THEN '03'
+                  WHEN 'Apr' THEN '04'
+                  WHEN 'May' THEN '05'
+                  WHEN 'Jun' THEN '06'
+                  WHEN 'Jul' THEN '07'
+                  WHEN 'Aug' THEN '08'
+                  WHEN 'Sep' THEN '09'
+                  WHEN 'Oct' THEN '10'
+                  WHEN 'Nov' THEN '11'
+                  WHEN 'Dec' THEN '12'
+              END || '-' ||
+              substr('0' || substr(w.created_at, 9, 2), -2) || ' ' ||
+              substr(w.created_at, 12, 8))
+        BETWEEN ? AND ?
+        ORDER BY CAST(w.id AS INTEGER) DESC
+        LIMIT ? OFFSET ?
+    ''', (start_dt.strftime('%Y-%m-%d %H:%M:%S'), end_dt.strftime('%Y-%m-%d %H:%M:%S'),
+          per_page, offset))
+
+    weibos = []
+    for row in cursor.fetchall():
+        weibo = dict(row)
+        # 转换图片路径
+        if weibo['pics']:
+            pic_urls = json.loads(weibo['pics'])
+            weibo['pics'] = convert_pics_to_local(weibo['id'], pic_urls, cursor)
+        else:
+            weibo['pics'] = []
+        weibos.append(weibo)
+
+    conn.close()
+
+    return render_template('date_range_results.html',
+                         page_title=f'{start_date} 至 {end_date} 的微博',
+                         weibos=weibos,
+                         total=total,
+                         page=page,
+                         total_pages=total_pages,
+                         start_date=start_date,
+                         end_date=end_date,
+                         datetimeformat=datetimeformat)
+
+
 @app.route('/images/<path:filename>')
 def serve_image(filename):
     """提供图片文件"""
