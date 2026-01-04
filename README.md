@@ -276,6 +276,37 @@ npx http-server -p 8000
 3. **私密微博**: 只能抓取公开微博
 4. **已删除微博**: 无法抓取已删除的内容
 
+## 部署到线上
+
+本系统支持部署到GitHub Pages或Cloudflare Pages作为公开的静态网站。
+
+### 快速部署到GitHub Pages
+
+1. **生成静态网站**
+   ```bash
+   cd generator
+   python build.py
+   ```
+
+2. **提交并推送**
+   ```bash
+   git add site/
+   git commit -m "chore: 更新静态网站"
+   git push origin main
+   ```
+
+3. **配置GitHub Pages**
+   - 访问仓库 Settings → Pages
+   - Source 选择 `main` 分支的 `/site` 文件夹
+   - 保存后等待1-3分钟即可访问
+
+4. **访问网站**
+   ```
+   https://yourusername.github.io/TombkeeperWeibo/
+   ```
+
+详细的部署指南和其他部署方式（Cloudflare Pages、动态部署等）请查看 [DEPLOYMENT.md](DEPLOYMENT.md)。
+
 ## 进阶使用
 
 ### 定时更新

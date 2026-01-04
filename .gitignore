@@ -11,7 +11,7 @@ ENV/
 
 # 数据文件
 data/
-site/
+# site/ - 注释掉，部署到GitHub Pages需要提交此目录
 
 # 配置文件（包含敏感信息）
 crawler/config.json
