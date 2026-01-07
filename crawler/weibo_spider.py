@@ -358,23 +358,30 @@ class WeiboSpider:
         cursor.execute('SELECT COUNT(*) FROM weibos WHERE uid = ?', (uid,))
         existing_count = cursor.fetchone()[0]
 
-        if existing_count > 0:
-            print(f"数据库中已有 {existing_count} 条微博，开始增量更新...")
-            mode = "incremental"
+        force_update = self.config.get('force_update', False)
 
-            # 快速检查：如果前5条都已存在，直接跳过（适合频繁更新场景）
-            print(f"执行快速检查（检查前5条ID）...")
-            has_new = self.quick_check_new_weibos(uid, max_check=5)
-            if not has_new:
-                print(f"快速检查：前5条都已存在，无新微博，跳过爬取")
-                print(f"\n用户 {name} 爬取完成:")
-                print(f"  新增微博: 0 条")
-                print(f"  跳过已存在: 0 条")
-                print(f"  数据库总计: {existing_count} 条")
-                print(f"  [超快模式] 快速检查发现无更新")
-                return
+        if existing_count > 0:
+            if force_update:
+                print(f"数据库中已有 {existing_count} 条微博，开始强制更新...")
+                mode = "force_update"
             else:
-                print(f"快速检查：发现新微博，开始完整爬取...")
+                print(f"数据库中已有 {existing_count} 条微博，开始增量更新...")
+                mode = "incremental"
+
+                # 快速检查：如果前5条都已存在，直接跳过（适合频繁更新场景）
+                # 注意：强制更新模式下跳过此检查
+                print(f"执行快速检查（检查前5条ID）...")
+                has_new = self.quick_check_new_weibos(uid, max_check=5)
+                if not has_new:
+                    print(f"快速检查：前5条都已存在，无新微博，跳过爬取")
+                    print(f"\n用户 {name} 爬取完成:")
+                    print(f"  新增微博: 0 条")
+                    print(f"  跳过已存在: 0 条")
+                    print(f"  数据库总计: {existing_count} 条")
+                    print(f"  [超快模式] 快速检查发现无更新")
+                    return
+                else:
+                    print(f"快速检查：发现新微博，开始完整爬取...")
         else:
             print(f"首次爬取该用户，将获取所有微博...")
             mode = "full"
@@ -382,6 +389,7 @@ class WeiboSpider:
         # 爬取微博
         page = 1
         new_weibos = 0
+        updated_weibos = 0  # 强制更新模式下更新的微博数
         skipped_weibos = 0
         consecutive_existing = 0  # 连续遇到已存在微博的计数
         first_page_all_exist = False  # 第一页是否全部已存在
@@ -395,6 +403,7 @@ class WeiboSpider:
                 break
 
             page_new_count = 0
+            page_updated_count = 0
             for weibo in weibos:
                 is_new = self.save_weibo(weibo, uid)
                 if is_new:
@@ -402,12 +411,20 @@ class WeiboSpider:
                     page_new_count += 1
                     consecutive_existing = 0  # 重置计数
                 else:
-                    skipped_weibos += 1
-                    consecutive_existing += 1
+                    if mode == "force_update":
+                        # 强制更新模式下，已存在的微博被更新了
+                        updated_weibos += 1
+                        page_updated_count += 1
+                    else:
+                        skipped_weibos += 1
+                        consecutive_existing += 1
 
-            print(f"第 {page} 页完成，新增 {page_new_count} 条，跳过 {len(weibos) - page_new_count} 条")
+            if mode == "force_update":
+                print(f"第 {page} 页完成，新增 {page_new_count} 条，更新 {page_updated_count} 条")
+            else:
+                print(f"第 {page} 页完成，新增 {page_new_count} 条，跳过 {len(weibos) - page_new_count} 条")
 
-            # 优化：第一页如果全部已存在，立即退出（适合频繁更新场景）
+            # 优化：第一页如果全部已存在，立即退出（仅在增量模式）
             if page == 1 and page_new_count == 0 and len(weibos) > 0 and mode == "incremental":
                 print(f"第一页全部已存在，无新微博，快速退出")
                 first_page_all_exist = True
@@ -424,7 +441,10 @@ class WeiboSpider:
 
         print(f"\n用户 {name} 爬取完成:")
         print(f"  新增微博: {new_weibos} 条")
-        print(f"  跳过已存在: {skipped_weibos} 条")
+        if mode == "force_update":
+            print(f"  更新微博: {updated_weibos} 条")
+        else:
+            print(f"  跳过已存在: {skipped_weibos} 条")
         print(f"  数据库总计: {existing_count + new_weibos} 条")
         if first_page_all_exist:
             print(f"  [快速模式] 第一页无更新，跳过后续检查")
