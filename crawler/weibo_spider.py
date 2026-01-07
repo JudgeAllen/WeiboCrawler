@@ -253,7 +253,12 @@ class WeiboSpider:
         if self.weibo_exists(weibo_id):
             return False
 
-        content = weibo.get('text_raw', weibo.get('text', ''))
+        # 获取微博内容，优先使用长文本
+        # 微博超过140字时，text_raw会被截断，需要从longText字段获取完整内容
+        if weibo.get('isLongText') and weibo.get('longText'):
+            content = weibo['longText'].get('longTextContent', '')
+        else:
+            content = weibo.get('text_raw', weibo.get('text', ''))
         created_at = weibo.get('created_at', '')
 
         # 统计信息
