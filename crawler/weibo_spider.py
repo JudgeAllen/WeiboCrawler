@@ -249,10 +249,6 @@ class WeiboSpider:
         # 提取微博信息
         weibo_id = weibo.get('id', '')
 
-        # 检查是否已存在
-        if self.weibo_exists(weibo_id):
-            return False
-
         # 获取微博内容，优先使用长文本
         # 微博超过140字时，text_raw会被截断，需要从longText字段获取完整内容
         if weibo.get('isLongText') and weibo.get('longText'):
@@ -260,6 +256,33 @@ class WeiboSpider:
         else:
             content = weibo.get('text_raw', weibo.get('text', ''))
         created_at = weibo.get('created_at', '')
+
+        # 检查是否已存在
+        exists = self.weibo_exists(weibo_id)
+
+        # 如果开启强制更新模式，更新已存在的微博
+        force_update = self.config.get('force_update', False)
+
+        if exists and not force_update:
+            return False
+
+        if exists and force_update:
+            # 更新已存在的微博内容
+            cursor.execute('''
+                UPDATE weibos
+                SET content = ?
+                WHERE id = ?
+            ''', (content, weibo_id))
+
+            # 更新全文搜索表
+            cursor.execute('''
+                UPDATE weibos_fts
+                SET content = ?
+                WHERE id = ?
+            ''', (content, weibo_id))
+
+            self.db_conn.commit()
+            return False  # 返回False表示不是新微博，是更新
 
         # 统计信息
         reposts_count = weibo.get('reposts_count', 0)

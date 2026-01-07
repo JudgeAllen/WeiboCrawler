@@ -100,6 +100,27 @@ python run.py
 - 下载微博图片
 - 保存到SQLite数据库
 
+#### 强制更新模式（修复被截断的长文本）
+
+如果需要重新抓取所有微博的完整内容（例如修复之前被截断的长文本），在 `crawler/config.json` 中添加：
+
+```json
+{
+  "force_update": true
+}
+```
+
+然后运行爬虫：
+```bash
+cd crawler
+python weibo_spider.py
+```
+
+**说明**：
+- `force_update: true` - 更新已存在微博的内容
+- `force_update: false` - 默认增量模式，跳过已存在微博
+- 完成后记得改回 `false` 以恢复增量更新模式
+
 #### 定时自动更新（推荐）
 
 本系统专门针对 **5-10分钟频繁更新** 场景进行了优化，在无新内容时可在2秒内完成检查。
