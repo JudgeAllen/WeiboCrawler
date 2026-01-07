@@ -242,6 +242,20 @@ class WeiboSpider:
             # 如果检查失败，保守起见返回True继续完整爬取
             return True
 
+    def fetch_long_text(self, weibo_id: str) -> Optional[str]:
+        """获取长文本完整内容"""
+        url = f'https://weibo.com/ajax/statuses/longtext?id={weibo_id}'
+        try:
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get('ok') == 1:
+                return data.get('data', {}).get('longTextContent', '')
+        except Exception as e:
+            print(f"  警告: 获取长文本失败 {weibo_id}: {str(e)}")
+        return None
+
     def save_weibo(self, weibo: Dict, uid: str) -> bool:
         """保存微博到数据库，返回是否是新微博"""
         cursor = self.db_conn.cursor()
@@ -249,12 +263,17 @@ class WeiboSpider:
         # 提取微博信息
         weibo_id = weibo.get('id', '')
 
-        # 获取微博内容，优先使用长文本
-        # 微博超过140字时，text_raw会被截断，需要从longText字段获取完整内容
-        if weibo.get('isLongText') and weibo.get('longText'):
-            content = weibo['longText'].get('longTextContent', '')
+        # 获取微博内容
+        # 如果是长文本，需要单独请求完整内容
+        if weibo.get('isLongText'):
+            content = self.fetch_long_text(weibo_id)
+            if not content:
+                # 如果获取失败，降级使用截断的文本
+                content = weibo.get('text_raw', weibo.get('text', ''))
+                print(f"  警告: 微博 {weibo_id} 使用截断文本")
         else:
             content = weibo.get('text_raw', weibo.get('text', ''))
+
         created_at = weibo.get('created_at', '')
 
         # 检查是否已存在
