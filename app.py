@@ -242,28 +242,14 @@ def search_api():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 清理查询字符串，移除FTS特殊字符
-    # FTS5特殊字符: " ( ) * + - < > @ ^ | ~
     import re
-    clean_query = re.sub(r'["\(\)\*\+\-<>@\^|~!/:\[\]{}]', ' ', query)
-    clean_query = ' '.join(clean_query.split())  # 移除多余空格
 
-    if not clean_query:
-        return jsonify([])
+    # 检测是否包含中文字符
+    def contains_chinese(text):
+        return bool(re.search(r'[\u4e00-\u9fff]', text))
 
-    # 使用FTS全文搜索
-    try:
-        cursor.execute('''
-            SELECT w.id, w.content, w.created_at, u.name as user_name
-            FROM weibos_fts f
-            JOIN weibos w ON CAST(f.id AS TEXT) = CAST(w.id AS TEXT)
-            LEFT JOIN users u ON w.uid = u.uid
-            WHERE f.content MATCH ?
-            ORDER BY CAST(w.id AS INTEGER) DESC
-            LIMIT 20
-        ''', (clean_query,))
-    except Exception as e:
-        # 如果FTS查询失败，回退到LIKE查询
+    # 如果查询包含中文，直接使用LIKE搜索（FTS5对中文分词支持不好）
+    if contains_chinese(query):
         cursor.execute('''
             SELECT w.id, w.content, w.created_at, u.name as user_name
             FROM weibos w
@@ -272,6 +258,36 @@ def search_api():
             ORDER BY CAST(w.id AS INTEGER) DESC
             LIMIT 20
         ''', (f'%{query}%',))
+    else:
+        # 英文查询使用FTS全文搜索
+        # 清理查询字符串，移除FTS特殊字符
+        clean_query = re.sub(r'["\(\)\*\+\-<>@\^|~!/:\[\]{}]', ' ', query)
+        clean_query = ' '.join(clean_query.split())  # 移除多余空格
+
+        if not clean_query:
+            conn.close()
+            return jsonify([])
+
+        try:
+            cursor.execute('''
+                SELECT w.id, w.content, w.created_at, u.name as user_name
+                FROM weibos_fts f
+                JOIN weibos w ON CAST(f.id AS TEXT) = CAST(w.id AS TEXT)
+                LEFT JOIN users u ON w.uid = u.uid
+                WHERE f.content MATCH ?
+                ORDER BY CAST(w.id AS INTEGER) DESC
+                LIMIT 20
+            ''', (clean_query,))
+        except Exception as e:
+            # 如果FTS查询失败，回退到LIKE查询
+            cursor.execute('''
+                SELECT w.id, w.content, w.created_at, u.name as user_name
+                FROM weibos w
+                LEFT JOIN users u ON w.uid = u.uid
+                WHERE w.content LIKE ?
+                ORDER BY CAST(w.id AS INTEGER) DESC
+                LIMIT 20
+            ''', (f'%{query}%',))
 
     results = []
     for row in cursor.fetchall():
