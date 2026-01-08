@@ -3,6 +3,10 @@
     {
       "uid": "1401527553",
       "name": "tombkeeper"
+    },
+    {
+      "uid": "6827625527",
+      "name": "t0mbkeeper"
     }
   ],
   "cookie": "YOUR_WEIBO_COOKIE_HERE",
@@ -11,5 +15,12 @@
   "database_path": "../data/database.db",
   "delay": 2,
   "max_retries": 3,
-  "force_update": false
+  "force_update": false,
+  "scheduler": {
+    "active_start_hour": 7,
+    "active_end_hour": 24,
+    "normal_interval_minutes": 5,
+    "extended_interval_minutes": 15,
+    "no_update_threshold": 3
+  }
 }

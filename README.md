@@ -67,7 +67,14 @@ pip install -r requirements.txt
   "image_path": "../data/images",
   "database_path": "../data/database.db",
   "delay": 2,
-  "max_retries": 3
+  "max_retries": 3,
+  "scheduler": {
+    "active_start_hour": 7,
+    "active_end_hour": 24,
+    "normal_interval_minutes": 5,
+    "extended_interval_minutes": 15,
+    "no_update_threshold": 3
+  }
 }
 ```
 
@@ -123,15 +130,39 @@ python weibo_spider.py
 
 #### 定时自动更新（推荐）
 
-本系统专门针对 **5-10分钟频繁更新** 场景进行了优化，在无新内容时可在2秒内完成检查。
+本系统提供 **智能调度器**，根据实际更新情况自动调整轮询间隔，既保证时效性又节省资源。
 
-**方式1：使用Python调度器（跨平台）**
+**方式1：使用智能调度器（推荐）**
 
 ```bash
 python scheduler.py
 ```
 
-默认每10分钟自动运行一次爬虫。
+**调度策略**：
+- **活跃时段**：仅在 7:00-24:00 之间运行（可配置）
+- **正常间隔**：每 5 分钟检查一次（可配置）
+- **智能延长**：连续 3 次无更新后，自动延长到 15 分钟（可配置）
+- **自动恢复**：发现新微博后，立即恢复到 5 分钟间隔
+- **高效检测**：无新内容时 2 秒内完成检查
+
+**调度器配置** (在 `crawler/config.json` 的 `scheduler` 部分)：
+```json
+{
+  "scheduler": {
+    "active_start_hour": 7,          // 活跃时段开始时间（小时）
+    "active_end_hour": 24,            // 活跃时段结束时间（小时）
+    "normal_interval_minutes": 5,     // 正常轮询间隔（分钟）
+    "extended_interval_minutes": 15,  // 延长后的间隔（分钟）
+    "no_update_threshold": 3          // N次无更新后延长间隔
+  }
+}
+```
+
+**工作流程示例**：
+1. 7:00 开始，每 5 分钟检查一次
+2. 连续 3 次无新微博 → 自动延长到 15 分钟
+3. 发现新微博 → 立即恢复到 5 分钟
+4. 24:00 后停止检查，等待到次日 7:00
 
 **方式2：使用系统定时任务**
 
