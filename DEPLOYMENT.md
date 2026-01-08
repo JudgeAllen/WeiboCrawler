@@ -52,7 +52,7 @@ git push origin main
 
 #### 4. 配置GitHub Pages
 
-1. 访问您的GitHub仓库 https://github.com/JudgeAllen/TombkeeperWeibo
+1. 访问您的GitHub仓库
 2. 点击 **Settings** → **Pages**
 3. 在 **Source** 下选择：
    - **Deploy from a branch**
@@ -64,13 +64,13 @@ git push origin main
 
 GitHub会自动部署，通常需要1-3分钟。部署完成后会显示网站URL：
 ```
-https://judgealien.github.io/TombkeeperWeibo/
+https://your-username.github.io/your-repo-name/
 ```
 
 #### 6. 自定义域名（可选）
 
 如果您有自己的域名：
-1. 在DNS提供商添加CNAME记录指向 `judgealien.github.io`
+1. 在DNS提供商添加CNAME记录指向 `your-username.github.io`
 2. 在GitHub Pages设置中填写自定义域名
 3. 等待DNS生效（通常几分钟到几小时）
 
@@ -97,7 +97,7 @@ https://judgealien.github.io/TombkeeperWeibo/
 
 在Actions页面可以看到部署进度。部署完成后访问：
 ```
-https://judgealien.github.io/TombkeeperWeibo/
+https://your-username.github.io/your-repo-name/
 ```
 
 ### 自动部署（可选）

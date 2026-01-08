@@ -25,7 +25,18 @@ pip install -r requirements.txt
     }
   ],
   "cookie": "粘贴你的Cookie到这里",
-  "download_images": true
+  "download_images": true,
+  "image_path": "../data/images",
+  "database_path": "../data/database.db",
+  "delay": 2,
+  "max_retries": 3,
+  "scheduler": {
+    "active_start_hour": 7,
+    "active_end_hour": 24,
+    "normal_interval_minutes": 5,
+    "extended_interval_minutes": 15,
+    "no_update_threshold": 3
+  }
 }
 ```
 
@@ -45,21 +56,31 @@ chmod +x run.sh
 选择选项4（完整流程）
 
 #### 或手动运行：
+
+**方式1：智能调度器（推荐）**
+```bash
+python scheduler.py
+```
+自动按配置的间隔定时抓取微博，智能调整频率。
+
+**方式2：单次运行**
 ```bash
 # 1. 爬取微博
 cd crawler
 python weibo_spider.py
 
-# 2. 生成网站
-cd ../generator
-python build.py
+# 2. 动态模式（查看和管理）
+cd ..
+python app.py
+# 访问 http://localhost:5000
 
-# 3. 预览
+# 3. 或生成静态网站
+cd generator
+python build.py
 cd ../site
 python -m http.server 8000
+# 访问 http://localhost:8000
 ```
-
-浏览器访问：http://localhost:8000
 
 ## 常见问题
 
@@ -75,11 +96,20 @@ Cookie过期了，重新登录微博获取新Cookie。
 确保 `config.json` 中 `download_images` 为 `true`
 
 ### 搜索功能不工作？
-确保运行了第2步生成网站。
+- 动态模式：确保运行 `python app.py`
+- 静态模式：确保运行了 `python build.py` 生成网站
+
+### 如何定时自动抓取？
+```bash
+python scheduler.py
+```
+或参考 [WINDOWS_TASK_SCHEDULER.md](WINDOWS_TASK_SCHEDULER.md) 设置系统定时任务。
 
 ## 下一步
 
 - 查看 [README.md](README.md) 了解详细功能
+- 查看 [SCHEDULER_CONFIG.md](SCHEDULER_CONFIG.md) 配置智能调度器
+- 查看 [DEPLOYMENT.md](DEPLOYMENT.md) 了解如何部署到GitHub Pages
 - 修改 `generator/templates/assets/style.css` 自定义样式
 - 添加更多博主到 `crawler/config.json`
 
@@ -103,7 +133,14 @@ Cookie过期了，重新登录微博获取新Cookie。
   ],
   "cookie": "你的Cookie",
   "download_images": true,
-  "delay": 2
+  "delay": 2,
+  "scheduler": {
+    "active_start_hour": 7,
+    "active_end_hour": 24,
+    "normal_interval_minutes": 5,
+    "extended_interval_minutes": 15,
+    "no_update_threshold": 3
+  }
 }
 ```
 
