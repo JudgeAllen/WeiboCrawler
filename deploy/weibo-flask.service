@@ -1,0 +1,23 @@
+[Unit]
+Description=Weibo Archive Flask Server - Dynamic web interface
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/%i/weibo-archive
+EnvironmentFile=/home/%i/weibo-archive/.env
+
+# 激活虚拟环境并运行Flask
+ExecStart=/home/%i/weibo-archive/venv/bin/python /home/%i/weibo-archive/app.py
+
+# 自动重启
+Restart=always
+RestartSec=5
+
+# 日志
+StandardOutput=append:/home/%i/weibo-archive/logs/flask.log
+StandardError=append:/home/%i/weibo-archive/logs/flask_error.log
+
+[Install]
+WantedBy=multi-user.target
