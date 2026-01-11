@@ -451,11 +451,33 @@ def serve_assets(filename):
 
 
 if __name__ == '__main__':
-    print("=" * 60)
-    print("微博归档系统 - 动态模式")
-    print("=" * 60)
-    print("\n访问地址: http://localhost:5000")
-    print("按 Ctrl+C 停止服务器\n")
-    print("=" * 60)
+    import os
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # 获取运行模式
+    env = os.getenv('FLASK_ENV', 'development')
+
+    if env == 'production':
+        # 生产环境：使用Gunicorn运行
+        print("=" * 60)
+        print("⚠️  警告：生产环境请使用 Gunicorn")
+        print("=" * 60)
+        print("\n推荐启动命令：")
+        print("  gunicorn -w 4 -b 127.0.0.1:5000 app:app")
+        print("\n或使用systemd服务：")
+        print("  sudo systemctl start weibo-flask@YOUR_USER")
+        print("\n" + "=" * 60)
+
+        # 生产模式不使用Flask开发服务器
+        app.run(debug=False, host='127.0.0.1', port=5000)
+    else:
+        # 开发环境：使用Flask开发服务器
+        print("=" * 60)
+        print("微博归档系统 - 开发模式")
+        print("=" * 60)
+        print("\n访问地址: http://localhost:5000")
+        print("按 Ctrl+C 停止服务器")
+        print("\n⚠️  这是开发服务器，生产环境请使用：")
+        print("   FLASK_ENV=production gunicorn -w 4 -b 127.0.0.1:5000 app:app")
+        print("\n" + "=" * 60)
+
+        app.run(debug=True, host='0.0.0.0', port=5000)

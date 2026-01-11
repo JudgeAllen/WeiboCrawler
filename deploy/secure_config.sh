@@ -47,9 +47,10 @@ DATABASE_PATH="/home/\$USER/weibo-archive/data/database.db"
 # 图片路径
 IMAGE_PATH="/home/\$USER/weibo-archive/data/images"
 
-# Flask配置（可选）
+# Flask配置
+FLASK_ENV="production"
 FLASK_SECRET_KEY="$(openssl rand -hex 32)"
-FLASK_HOST="0.0.0.0"
+FLASK_HOST="127.0.0.1"
 FLASK_PORT="5000"
 EOF
 
