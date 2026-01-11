@@ -12,6 +12,8 @@
 | `secure_config.sh` | 安全配置脚本 | 配置环境变量保护Cookie |
 | `install_services.sh` | 服务安装脚本 | 安装并启动systemd服务 |
 | `ssl_setup.sh` | HTTPS配置脚本 | 一键配置Let's Encrypt证书 |
+| `upgrade.sh` | 升级脚本（Linux） | 一键更新到最新版本 |
+| `upgrade.bat` | 升级脚本（Windows） | Windows一键更新 |
 | `weibo-scheduler.service` | 调度器服务 | systemd服务配置文件 |
 | `weibo-flask.service` | Flask服务 | systemd服务配置文件 |
 | `nginx.conf` | Nginx配置模板 | 反向代理和SSL配置模板 |
@@ -279,21 +281,64 @@ top
 htop
 ```
 
-## 🔄 更新
+## 🔄 升级系统
+
+### 方式1：一键升级（推荐）
+
+**Linux/VPS:**
+```bash
+cd ~/weibo-archive
+chmod +x deploy/upgrade.sh
+./deploy/upgrade.sh
+```
+
+**Windows:**
+```cmd
+cd f:\Git\tombkeeper
+deploy\upgrade.bat
+```
+
+升级脚本会自动：
+1. ✅ 拉取最新代码
+2. ✅ 更新Python依赖
+3. ✅ 检查数据库状态
+4. ✅ 更新systemd服务配置
+5. ✅ 重启服务
+6. ✅ 验证运行状态
+7. ✅ 显示更新日志
+
+### 方式2：手动升级
 
 ```bash
-# 拉取最新代码
+# 1. 拉取最新代码
 cd ~/weibo-archive
 git pull origin main
 
-# 更新依赖
+# 2. 更新依赖
 source venv/bin/activate
 pip install -r requirements.txt --upgrade
 
-# 重启服务
+# 3. 更新systemd服务（如有更新）
+sudo cp deploy/weibo-scheduler.service /etc/systemd/system/weibo-scheduler@.service
+sudo cp deploy/weibo-flask.service /etc/systemd/system/weibo-flask@.service
+sudo systemctl daemon-reload
+
+# 4. 重启服务
 sudo systemctl restart weibo-scheduler@YOUR_USER
 sudo systemctl restart weibo-flask@YOUR_USER
+
+# 5. 验证
+sudo systemctl status weibo-scheduler@YOUR_USER
+sudo systemctl status weibo-flask@YOUR_USER
 ```
+
+### 升级注意事项
+
+- ⚠️ 升级前会检查未提交的更改
+- ⚠️ 如有本地修改，建议先备份或提交
+- ⚠️ 升级会自动重启服务，可能中断几秒钟
+- ✅ 数据库和配置文件不会被覆盖
+- ✅ 升级失败会保留当前版本
 
 ## 💾 备份
 
