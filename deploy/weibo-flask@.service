@@ -3,7 +3,7 @@ Description=Weibo Archive Web Server - Production WSGI server
 After=network.target
 
 [Service]
-Type=notify
+Type=simple
 User=%i
 WorkingDirectory=/home/%i/weibo-archive
 EnvironmentFile=/home/%i/weibo-archive/.env

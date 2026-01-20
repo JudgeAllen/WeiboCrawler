@@ -10,7 +10,13 @@ echo ""
 
 # 获取当前用户名
 CURRENT_USER=$(whoami)
-PROJECT_DIR=~/weibo-archive
+PROJECT_DIR=~/WeiboCrawler
+
+echo "当前用户: $CURRENT_USER"
+echo "项目目录: $PROJECT_DIR"
+echo ""
+
+
 
 # 创建日志目录
 echo "创建日志目录..."
@@ -18,12 +24,12 @@ mkdir -p $PROJECT_DIR/logs
 
 # 安装调度器服务
 echo "1/3 安装调度器服务..."
-sudo cp $PROJECT_DIR/deploy/weibo-scheduler.service /etc/systemd/system/weibo-scheduler@.service
+sudo cp $PROJECT_DIR/deploy/weibo-scheduler@.service /etc/systemd/system/weibo-scheduler@.service
 sudo systemctl daemon-reload
 
 # 安装Flask服务（可选）
 echo "2/3 安装Flask服务..."
-sudo cp $PROJECT_DIR/deploy/weibo-flask.service /etc/systemd/system/weibo-flask@.service
+sudo cp $PROJECT_DIR/deploy/weibo-flask@.service /etc/systemd/system/weibo-flask@.service
 sudo systemctl daemon-reload
 
 # 询问是否启动服务
