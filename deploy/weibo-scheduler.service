@@ -1,0 +1,23 @@
+[Unit]
+Description=Weibo Archive Scheduler - Smart crawling service
+After=network.target
+
+[Service]
+Type=simple
+User=judgeallenzheng
+WorkingDirectory=/home/judgeallenzheng/WeiboCrawler
+EnvironmentFile=/home/judgeallenzheng/WeiboCrawler/.env
+
+# 激活虚拟环境并运行调度器
+ExecStart=/home/judgeallenzheng/WeiboCrawler/venv/bin/python /home/judgeallenzheng/WeiboCrawler/scheduler.py
+
+# 自动重启
+Restart=always
+RestartSec=10
+
+# 日志
+StandardOutput=append:/home/judgeallenzheng/WeiboCrawler/logs/scheduler.log
+StandardError=append:/home/judgeallenzheng/WeiboCrawler/logs/scheduler_error.log
+
+[Install]
+WantedBy=multi-user.target

@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=%i
-WorkingDirectory=/home/%i/WeiboCrawler
-EnvironmentFile=/home/%i/WeiboCrawler/.env
+User=judgeallenzheng
+WorkingDirectory=/home/judgeallenzheng/WeiboCrawler
+EnvironmentFile=/home/judgeallenzheng/WeiboCrawler/.env
 
 # 使用Gunicorn运行Flask（生产级WSGI服务器）
 # -w 4: 4个worker进程（根据CPU核心数调整）
@@ -14,12 +14,12 @@ EnvironmentFile=/home/%i/WeiboCrawler/.env
 # --timeout 120: 请求超时时间（秒）
 # --access-logfile: 访问日志
 # --error-logfile: 错误日志
-ExecStart=/home/%i/WeiboCrawler/venv/bin/gunicorn \
+ExecStart=/home/judgeallenzheng/WeiboCrawler/venv/bin/gunicorn \
     --workers 4 \
     --bind 127.0.0.1:5000 \
     --timeout 120 \
-    --access-logfile /home/%i/WeiboCrawler/logs/gunicorn_access.log \
-    --error-logfile /home/%i/WeiboCrawler/logs/gunicorn_error.log \
+    --access-logfile /home/judgeallenzheng/WeiboCrawler/logs/gunicorn_access.log \
+    --error-logfile /home/judgeallenzheng/WeiboCrawler/logs/gunicorn_error.log \
     --log-level info \
     app:app
 
@@ -32,8 +32,8 @@ KillMode=mixed
 KillSignal=SIGQUIT
 
 # 日志
-StandardOutput=append:/home/%i/WeiboCrawler/logs/flask.log
-StandardError=append:/home/%i/WeiboCrawler/logs/flask_error.log
+StandardOutput=append:/home/judgeallenzheng/WeiboCrawler/logs/flask.log
+StandardError=append:/home/judgeallenzheng/WeiboCrawler/logs/flask_error.log
 
 [Install]
 WantedBy=multi-user.target
